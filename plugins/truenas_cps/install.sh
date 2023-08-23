@@ -1,8 +1,20 @@
 
-script_dir=$(cd $(dirname $0);pwd)
-helm repo add truenas-csp https://hpe-storage.github.io/truenas-csp/
-helm repo update
-helm install commom-truenas-csp truenas-csp/truenas-csp --create-namespace -n hpe-storage
+echo "==========install truenas csi============="
+cd `dirname $0`
+dir=`pwd` 
+
+
+echo "installing truenas-csp ..."
+helm install truenas-csp truenas-csp \
+ --repo https://hpe-storage.github.io/truenas-csp/ \
+ --create-namespace -n hpe-storage
+
+echo "waiting for truenas-csp installed ..."
+kubectl wait --for=condition=ready pod -l app=hpe-csi-controller -n hpe-storage --timeout=600s
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=truenas-csp -n hpe-storage --timeout=600s
+kubectl wait --for=condition=ready pod -l app=hpe-csi-node -n hpe-storage --timeout=600s
+echo "install truenas-csp successfully"
+
 
 readReq(){
     msg=$1
@@ -16,12 +28,12 @@ readReq(){
     fi
     echo ${arg}
 }
-
+echo "Create StorageClass and VolumeSnapshotClass: "
 truenas_ip=$(readReq "input truenas ip:" $TRUENAS_IP)
 truenas_apikey=$(readReq "input truenas api key:" $TRUENAS_APIKEY)
 truenas_root=$(readReq "input truenas store root(dataset path):" $TRUENAS_ROOT)
 
-cat > init.yaml << EOF
+cat > "$dir/init.yaml" << EOF
 ---
 apiVersion: v1
 kind: Secret
@@ -75,11 +87,9 @@ parameters:
   csi.storage.k8s.io/snapshotter-list-secret-name: truenas-secret
   csi.storage.k8s.io/snapshotter-list-secret-namespace: hpe-storage
 EOF
-kubectl apply -f $script_dir/init.yaml 
+kubectl apply -f $dir/init.yaml
 
-rm -rf $script_dir/init.yaml 
-
-demo= "
+demo="
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -117,5 +127,7 @@ spec:
         claimName: my-first-pvc-1
 "
 
-echo "test yaml:"
+echo "for test ,please follow the config:"
 echo $demo
+
+ echo "==================================="
