@@ -1,0 +1,84 @@
+---
+#deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: infrastructure
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata: 
+      labels:
+        app: minio
+    spec:
+      containers:
+      - image: quay.io/minio/minio:latest
+        name: minio
+        env:
+        - name: MINIO_ROOT_USER
+          value: "admin"
+        - name: MINIO_ROOT_PASSWORD
+          value: "adminminio" 
+        command:
+        - /bin/bash
+        - -c
+        args: 
+        - minio server /mnt/data --console-address :9090
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: minio-vol
+        ports:
+        - containerPort: 9090
+          name: minio-port
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1G"
+          requests:
+            cpu: "0.5"
+            memory: "0.5Gi"
+      volumes:
+        - name: minio-vol
+          persistentVolumeClaim:
+            claimName: minio-pvc
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-minio
+  namespace: infrastructure
+spec:
+  selector:
+    app: minio
+  ports:
+  - name: minio-of-service-port
+    protocol: TCP
+    port: 9090
+    targetPort: minio-port 
+---
+#ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-minio
+  namespace: infrastructure
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "minio.in.dxids.com"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-minio
+            port:
+              number: 9090       

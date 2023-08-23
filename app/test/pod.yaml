@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu
+  namespace: default
+spec:
+  containers:
+    - command:
+        - sh
+        - -c
+        - 'date >> /mnt/openebs-csi/date.txt; hostname >> /mnt/openebs-csi/hostname.txt; sync; sleep 5; sync; tail -f /dev/null;'
+      image: ubuntu
+      imagePullPolicy: Always
+      name: ubuntu
+      volumeMounts:
+        - mountPath: /mnt/openebs-csi
+          name: demo-vol
+  volumes:
+    - name: demo-vol
+      persistentVolumeClaim:
+        claimName: my-first-pvc-1

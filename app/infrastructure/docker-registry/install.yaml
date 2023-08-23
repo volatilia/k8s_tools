@@ -1,0 +1,115 @@
+---
+#pod
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: infrastructure
+  labels:
+    app: registry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata: 
+      labels:
+        app: registry
+    spec:
+      containers:
+      - image: registry:2.8.2
+        name: registry
+        volumeMounts:
+        - mountPath: /var/lib/registry
+          name: registry-vol
+        ports:
+        - containerPort: 5000
+          name: registry-port
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1G"
+          requests:
+            cpu: "0.5"
+            memory: "0.5Gi"
+      - image: registry.cn-hangzhou.aliyuncs.com/vemex/docker-registry-frontend:v2
+        name: registry-ui
+        env:
+        - name: ENV_DOCKER_REGISTRY_HOST
+          value: "registry.in.dxids.com"
+        - name: ENV_DOCKER_REGISTRY_PORT
+          value: "443" 
+        ports:
+        - containerPort: 80
+          name: ui-port
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1G"
+          requests:
+            cpu: "0.5"
+            memory: "0.5Gi"
+      volumes:
+        - name: registry-vol
+          persistentVolumeClaim:
+            claimName: registry-pvc
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-registry
+  namespace: infrastructure
+spec:
+  selector:
+    app: registry
+  ports:
+  - name: registry-of-service-port
+    protocol: TCP
+    port: 5000
+    targetPort: registry-port
+  - name: registry-ui-of-service-port
+    protocol: TCP
+    port: 80
+    targetPort: ui-port
+---
+#ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-registry
+  namespace: infrastructure
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "registry.in.dxids.com"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-registry
+            port:
+              number: 5000
+  - host: "registry-ui.in.dxids.com"
+    http:
+      paths:
+      - path: /v2
+        pathType: Prefix
+        backend:
+          service:
+            name: service-registry
+            port:
+              number: 5000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-registry
+            port:
+              number: 80
+  
+        
+        
