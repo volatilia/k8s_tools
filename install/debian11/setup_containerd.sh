@@ -84,7 +84,7 @@ fi
 
 if [ -n $IMAGE_MIRROR_NVCR ]; then
 mkdir -p /etc/containerd/certs.d/nvcr.io/
-cat > /etc/containerd/certs.d/nvcr.ioo/hosts.toml <<EOF
+cat > /etc/containerd/certs.d/nvcr.io/hosts.toml <<EOF
 server = "https://nvcr.io"
 
 [host."https://$IMAGE_MIRROR_NVCR"]

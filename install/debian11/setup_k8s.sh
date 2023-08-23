@@ -25,6 +25,8 @@ nodeRegistration:
   imagePullPolicy: IfNotPresent
   name: $hostname
   taints: null
+  kubeletExtraArgs:
+    cloud-provider: external
 ---
 apiServer:
   timeoutForControlPlane: 4m0s
