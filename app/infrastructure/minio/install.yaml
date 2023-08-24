@@ -18,7 +18,7 @@ spec:
         app: minio
     spec:
       containers:
-      - image: quay.io/minio/minio:latest
+      - image: registry.cn-hangzhou.aliyuncs.com/vemex/minio:latest
         name: minio
         env:
         - name: MINIO_ROOT_USER
@@ -29,7 +29,7 @@ spec:
         - /bin/bash
         - -c
         args: 
-        - minio server /mnt/data --console-address :9090
+        - minio server /mnt/data --console-address :9090  
         volumeMounts:
         - mountPath: /mnt/data
           name: minio-vol
