@@ -4,7 +4,7 @@ dir=`pwd`
 
 kubectl create ns infrastructure
 echo "installing nexus ..."
-kubectl create -f $dir/pvc.yaml
+kubectl apply -f $dir/pvc.yaml
 kubectl create -f $dir/install.yaml
 
 echo "wating for nexus installed ..."

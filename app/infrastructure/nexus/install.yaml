@@ -17,12 +17,22 @@ spec:
       labels:
         app: nexus
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+        fsGroupChangePolicy: "OnRootMismatch"
       containers:
       - image: sonatype/nexus3:3.59.0
         name: nexus
         env:
         - name: nexus_ROOT_USER
           value: "admin" 
+        securityContext:
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /nexus-data
+          name: nexus-vol
         ports:
         - containerPort: 8081
           name: nexus-port
@@ -33,6 +43,10 @@ spec:
           requests:
             cpu: "0.5"
             memory: "0.5Gi"
+      volumes:
+        - name: nexus-vol
+          persistentVolumeClaim:
+            claimName: nexus-pvc
 ---
 #service
 apiVersion: v1

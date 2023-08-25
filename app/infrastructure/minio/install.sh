@@ -4,7 +4,7 @@ dir=`pwd`
 
 kubectl create ns infrastructure
 echo "installing minio ..."
-kubectl create -f $dir/pvc.yaml
+kubectl apply -f $dir/pvc.yaml
 kubectl create -f $dir/install.yaml
 
 echo "wating for minio installed ..."

@@ -26,7 +26,7 @@ esac
 echo "deleting minio ..."
 
 kubectl delete -f $dir/install.yaml
-if [ $delete_pvc ]; then
+if [ "$delete_pvc" = true ]; then
 kubectl delete -f $dir/pvc.yaml
 fi
 

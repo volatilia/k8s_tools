@@ -23,10 +23,12 @@ case $(readOpt "Do you want to delete data(delete pvc)?(y|n)[n]:" n) in
         ;;
 esac
 
+
 echo "deleting nexus ..."
 
 kubectl delete -f $dir/install.yaml
-if [ $delete_pvc ]; then
+if [ "$delete_pvc" = true ]; then
+echo "delete pvc:$delete_pvc "
 kubectl delete -f $dir/pvc.yaml
 fi
 
